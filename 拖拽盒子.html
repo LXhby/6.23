@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    body,dl,dd,p,h1,h2,h3,h4,h5,h6{margin:0;}
+    ol,ul,li{margin:0;padding:0;list-style:none;}
+    img{border:none;vertical-align:top;}
+    .box{
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background-color: #f66;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">1</div>
+  <div class="box">2</div>
+  <div class="box">2</div>
+  <div class="box">2</div>
+  <div class="box">2</div>
+  <div class="box">2</div>
+</body>
+<script>
+  var oBox =document.getElementsByClassName("box");
+
+  for (var i=0;i<oBox.length;i++){
+      moveBox(oBox[i]);
+      eventBind(oBox[i],"dblclick",function (e) {
+          //每次进来把开关取反
+          this.moveState =!this.moveState;
+          if (this.moveState) {
+              eventUnbind(this,"mousedown");
+          }else{
+              moveBox(this);
+          }
+
+      });
+  }
+  function moveBox(ele){
+      eventBind(ele,"mousedown",function (e) {
+          e=e ||window.e;
+          var _left =e.clientX,
+              _top =e.clientY,
+              // goLeft =parseFloat(getStyle(oBox).left),
+              // goTop =parseFloat(getStyle(oBox).top);
+              goLeft =ele.offsetLeft,
+              goTop=ele.offsetTop;
+          eventBind(document,"mousemove",function (e) {
+              e=e ||window.e;
+              e.preventDefault();//取消默认行为
+              ele.style.left=goLeft+(e.clientX-_left)+"px";//计算移动的距离
+              ele.style.top=goTop+(e.clientY-_top)+"px";//但是鼠标移动很快时候 不行 因为事件响应速度跟不上鼠标移动速度
+
+          });
+          eventBind(document,"mouseup",function (e) {
+              eventUnbind(document,"mousemove");
+              eventUnbind(document,"mouseup");
+          });
+      });
+  }
+    function eventBind(ele,event,handle,capture) {
+        //包装函数做处理  用于取消函数和this指向问题
+        ele["event"+event] = handle;
+
+        //先判断浏览器是否为主流浏览器
+        if (ele.addEventListener){
+            ele.addEventListener(event,ele["event"+event],capture);
+        }else if (ele.attachEvent){
+            ele["event"+event] =function(){
+                handle.call(ele,window.event)
+            };
+            ele.attachEvent("on"+event,ele["event"+event]);
+        }
+    }
+    //注销事件
+    function eventUnbind(ele,event,capture) {
+        if (ele.removeEventListener){
+            ele.removeEventListener(event,ele["event"+event],capture);
+        }else if (ele.detachEvent){
+            ele.detachEvent("on"+event,ele["event"+event]);
+        }
+    }
+    function getStyle(ele){
+      return ele.current ||getComputedStyle(ele);
+    }
+</script>
+</html>
